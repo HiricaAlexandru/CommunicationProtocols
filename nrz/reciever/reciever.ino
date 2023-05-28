@@ -8,6 +8,8 @@
 bool isChangedClock = false;
 char result = 0;
 int number = 0;
+int parityGot, parityCalculated = false;
+int currentIndex = 0;
 
 void setup() {
   // put your setup code here, to run once:
@@ -26,8 +28,6 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   int clockValue = digitalRead(D3);
-  
-
   if(isChangedClock ^ clockValue){
     isChangedClock = clockValue;
     if(clockValue == 1){
@@ -35,21 +35,33 @@ void loop() {
       int messageValue;
       digitalWrite(D4, HIGH);
       messageValue = digitalRead(D2);
+
+      if(number <= 7 && messageValue == 1){
+        parityCalculated = parityCalculated ^ messageValue;
+      }
       messageValue = messageValue << (number-1);
       result = result+messageValue;
-      //result = result << 1;
-      //result += messageValue;
-      //Serial.print(result);
       
     }else{
       digitalWrite(D4, LOW);
     }
   }
-  
+  currentIndex += 1;
+
   if(number == 8){
-    Serial.print(result);
+    parityGot = result & 128;
+
+    result -= parityGot;
+
+    if((parityCalculated == 1 && parityGot>0) || (parityGot == parityCalculated)){
+      Serial.print(result);
+    }
+    else
+      Serial.print("?");
+
     result = 0;
     number = 0;
+    parityCalculated = false;
   }
 
 }
